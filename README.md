@@ -1,5 +1,5 @@
 # GSD SES5394 Team 1
-This is a repository that contains team assignments for the GSD SES 5394 Travel Behavior & Forecasting @ Harvard.
+This is a repository that contains team assignments for the GSD SES 5394 Travel Behavior & Forecasting course @ Harvard.
 
 ## Requirements
 - **R (version 4.x or higher)**
