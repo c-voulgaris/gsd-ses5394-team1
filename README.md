@@ -13,8 +13,11 @@ To reproduce the analysis from these repos:
    git clone https://github.com/Anitej185/gsd-ses5394-team1.git
    cd gsd-ses5394-team1
 
+## Assignments Overview:
+1. T1: We explore a hypothetical scenario in which all academic buildings, athletic fields, and green spaces on the Harvard and MIT campuses are replaced with affordable housing units. Student dormitories remain unchanged. Under this scenario, thousands of transit-accessible jobs are removed, which may alter local transportation patterns, household vehicle ownership, and transit demand. Our analysis uses R and TransCAD to process and visualize the resulting changes in vehicle availability.
+
 ## Contact
 For questions or further information, please feel free to contact:
-- Anitej Thamma at anitej_thamma@g.harvard.edu
-- Ethan Kita at ekita@mit.edu
-- Paige Lee at paigelee@g.harvard.edu
+- Anitej Thamma
+- Ethan Kita
+- Paige Lee
