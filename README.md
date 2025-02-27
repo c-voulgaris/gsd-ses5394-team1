@@ -20,6 +20,6 @@ To reproduce the analysis from these repos:
 
 ## Contact
 For questions or further information, please feel free to contact:
-- Anitej Thamma
-- Ethan Kita
-- Paige Lee
+- [@Anitej185](https://github.com/Anitej185)
+- [@the-gadgeteer](https://github.com/the-gadgeteer)
+- [@paige-lee](https://github.com/paige-lee)
