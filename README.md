@@ -14,8 +14,7 @@ To reproduce the analysis from these repos:
    cd gsd-ses5394-team1
 
 ## Assignments Overview:
-1. T1: We explore a hypothetical scenario in which all academic buildings, athletic fields, and green spaces on the Harvard and MIT campuses are replaced with affordable housing units. Student dormitories remain unchanged. Under this scenario, thousands of transit-accessible jobs are removed, which may alter local transportation patterns, household vehicle ownership, and transit demand. Our analysis uses R and TransCAD to process and visualize the resulting changes in vehicle availability.
-   - The T1 folder contains our code for the T1 assignment, where we ran the TDM23 model through the vehicle availability step for an alternative scenario where we replace the academic buildings on the Harvard and MIT campuses with affordable housing units. Within the T1 folder are the following files:
+1. T1: We explore a hypothetical scenario in which all academic buildings, athletic fields, and green spaces on the Harvard and MIT campuses are replaced with affordable housing units. Student dormitories remain unchanged. Under this scenario, thousands of transit-accessible jobs are removed, which may alter local transportation patterns, household vehicle ownership, and transit demand. Our analysis uses R and TransCAD to process and visualize the resulting changes in vehicle availability. Within the T1 folder are the following files:
    - T1_FINAL.qmd contains our code
    - blocks folder contains the output target blocks (associated with the five census tracts that we targeted) and the dif (changes from the base to the alternative model) related files
 
