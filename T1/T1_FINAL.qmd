@@ -8,7 +8,9 @@ format:
 editor: visual
 ---
 
-## Defining file paths (MODIFY THESE BEFORE RUNNING CODE)
+## Defining file paths
+
+Note: As long as everyone is using the same directory structure within the project folder, there would be no need to modify these before running the code.
 
 ```{r, warning = FALSE, message = FALSE}
 library(here)
@@ -48,12 +50,6 @@ MA_pop <- file.path(inputs_folder, "zonal",
   mutate(block_id = as.character(block_id))
 ```
 
-```{r}
-RINH_pop <- file.path(inputs_folder, "zonal",
-               "nhri_population_2020_v20230518.csv") |>
-  read_csv(show_col_types = FALSE)
-```
-
 ### Employment files
 
 ```{r}
@@ -62,16 +58,6 @@ MA_emp <- file.path(inputs_folder, "zonal",
   read_csv(show_col_types = FALSE) |>
   mutate(block_id = as.character(block_id))
 
-head(MA_emp, n = 10) |>
-  kable()
-```
-
-```{r}
-RINH_emp <- file.path(inputs_folder, "zonal",
-               "nhri_employment_2020_v20230518.csv") |>
-  read_csv(show_col_types = FALSE) |>
-  mutate(block_id = as.character(block_id)) |>
-  filter(str_length(block_id) < 10)
 ```
 
 ## Edit model inputs
@@ -79,14 +65,14 @@ RINH_emp <- file.path(inputs_folder, "zonal",
 ### Change population
 
 ```{r}
+
+
 # Summarize the number of persons in each block ID
 summarized_block_pop <- MA_pop |>
-  filter(block_id %in% c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")) |>
+  filter(block_id %in% target_block_ids) |>
   group_by(block_id) |>
-  summarize(total_people = n())
+  summarize(total_people = n(), mean_inc = mean(wage_inc))
 
-# Display the summarized data
-summarized_block_pop
   
 ```
 
@@ -244,7 +230,7 @@ MA_pop_updated
 
 # Calculate the total households for each block ID
 households_per_block <- MA_pop_updated |> 
-  filter(block_id %in% block_ids) |> 
+  filter(block_id %in% target_block_ids) |> 
   group_by(block_id) |> 
   summarize(total_households = length(unique(hid)))
 
@@ -253,7 +239,10 @@ households_per_block
 
 # Summarize the number of persons in each block ID
 
-summarized_block_pop <- MA_pop_updated |> filter(block_id %in% c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")) |> group_by(block_id) |> summarize(total_people = n())
+summarized_block_pop <- MA_pop_updated |> 
+  filter(block_id %in% target_block_ids) |> 
+  group_by(block_id) |> 
+  summarize(total_people = n())
 
 # Display the summarized data
 
@@ -266,15 +255,6 @@ summarized_block_pop
 # Write to CSV
 write_csv(MA_pop_updated, file.path(inputs_folder, "zonal", "ma_pop_nounis.csv"))
 
-#MA_pop_updated_read <- read.csv(file.path(inputs_folder, "zonal", "ma_pop_nounis.csv"))
-
-# summarized_block_pop <- MA_pop_updated |>
-#   filter(block_id %in% c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")) |>
-#   group_by(block_id) |>
-#   summarize(total_people = n())
-
-# summarized_block_pop
-
 nrow(MA_pop)
 nrow(MA_pop_updated)
 ```
@@ -282,10 +262,10 @@ nrow(MA_pop_updated)
 ### Change employment
 
 ```{r}
-block_ids <- c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")
+
 
 MA_emp |>
-  filter(block_id %in% block_ids) |>
+  filter(block_id %in% target_block_ids) |>
   t() |>
   kable()
 ```
@@ -293,14 +273,14 @@ MA_emp |>
 ```{r}
 
 hh_per_block <- MA_pop_updated |>
-  filter(block_id %in% block_ids) |>
+  filter(block_id %in% target_block_ids) |>
   group_by(block_id) |>
   summarize(total_households = length(unique(hid)))
 
 hh_per_block
 
 # Create the new_emp tibble
-new_emp <- tibble(block_id = block_ids,
+new_emp <- tibble(block_id = target_block_ids,
                   `1_constr` = 0,
                   `2_eduhlth` = 0,
                   `3_finance` = 0,
@@ -318,15 +298,14 @@ new_emp <- tibble(block_id = block_ids,
 new_emp <- left_join(new_emp, hh_per_block, by = "block_id") |>
   select(block_id, `1_constr`, `2_eduhlth`, `3_finance`, `4_public`, `5_info`, `6_ret_leis`, `7_manu`, `8_other`, `9_profbus`, `10_ttu`, total_jobs, total_households = total_households.y)
 
-# Display the updated new_emp tibble
-new_emp
+
 
 MA_emp_updated <- MA_emp |>
-  filter(!block_id %in% block_ids) |>
+  filter(!block_id %in% target_block_ids) |>
   bind_rows(new_emp)
 
 MA_emp_updated |>
-  filter(block_id %in% block_ids) |>
+  filter(block_id %in% target_block_ids) |>
   t() |>
   kable()
 
@@ -338,19 +317,9 @@ write_csv(MA_emp_updated, file.path(inputs_folder, "zonal", "ma_emp_nounis.csv")
 ## Scenario results
 
 ```{r, message = FALSE, warning = FALSE, echo = FALSE, results = "hide"}
-# Creating a shp file for our target blocks
 
 # Download census block data for MA
 ma_blocks <- blocks(state = "MA", year = 2010, class = "sf")
-
-# Target blocks
-target_blocks <- c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")
-
-# Filter MA census blocks for our target blocks
-target_blocks_sf <- ma_blocks |> filter(GEOID10 %in% target_blocks)
-
-# Save as a shapefile
-st_write(target_blocks_sf, file.path(T1_folder, "target_blocks.shp"), append = FALSE)
 ```
 
 ```{r}
@@ -366,11 +335,9 @@ dbListTables(base_db)
 ```
 
 ```{r}
-target_blocks <- c("250173531021004", "250173531022011", "250173537003005", "250173536005005", "250250001001001")
 
 # Extract vehicle availability data from the base scenario
-my_query <- paste0("SELECT * FROM veh WHERE block_id IN ('", 
-                   paste(target_blocks, collapse = "', '"), "')")
+my_query <- paste0("SELECT * FROM veh")
 
 target_vehs_base <- dbGetQuery(base_db, my_query)
 
@@ -386,8 +353,7 @@ alt_db <- dbConnect(drv=RSQLite::SQLite(),
 
 ```{r, warning=FALSE, message=FALSE}
 # Query vehicle availability data for the alternative scenario
-my_query_alt <- paste0("SELECT * FROM veh WHERE block_id IN ('", 
-                        paste(target_blocks, collapse = "', '"), "')")
+my_query_alt <- paste0("SELECT * FROM veh")
 
 target_vehs_alt <- dbGetQuery(alt_db, my_query_alt)
 
@@ -428,7 +394,8 @@ target_vehs_changed_hh <- target_vehs_dif |>
   ))
 
 # Summarize changes at the block level
-target_vehs_changed_blocks <- target_vehs_changed_hh |> mutate(block_id = as.character(block_id)) |> 
+target_vehs_changed_blocks <- target_vehs_changed_hh |> 
+  mutate(block_id = as.character(block_id)) |> 
   group_by(block_id) |>  
   summarise(
     n_hhs = n(),  # Count number of households per block
@@ -438,34 +405,17 @@ target_vehs_changed_blocks <- target_vehs_changed_hh |> mutate(block_id = as.cha
     n_gained_veh = sum(change == "Gained vehicle", na.rm = TRUE),
     n_lost_veh = sum(change == "Lost vehicle", na.rm = TRUE)
   ) |>
-  rename(GEOID10 = block_id) 
+  rename(GEOID10 = block_id) |>
+  filter(n_new_zv + n_new_iv + n_new_sv + n_gained_veh + n_lost_veh > 0)
 
-# Display summary table
-kable(target_vehs_changed_blocks)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-# Load spatial data for the region
-target_blocks_sf <- st_read(file.path(T1_folder, "target_blocks.shp"))
-
-# Transform CRS to WGS84 for Leaflet compatibility
-target_blocks_sf <- st_transform(target_blocks_sf, crs = 4326)
-
-# Ensure only polygons/multipolygons are included
-target_blocks_sf <- st_collection_extract(target_blocks_sf, "POLYGON")
-target_blocks_sf <- target_blocks_sf[st_geometry_type(target_blocks_sf) %in% c("POLYGON", "MULTIPOLYGON"), ]
-target_blocks_sf <- target_blocks_sf[!st_is_empty(target_blocks_sf), ]
-
-# Merge spatial and vehicle ownership data
-dif_blocks <- target_blocks_sf |>  
-  left_join(target_vehs_changed_blocks, by = "GEOID10")  
-
-# Restore `sf` properties if lost
-dif_blocks <- st_as_sf(dif_blocks)
-
-# Ensure only valid geometries remain
-dif_blocks <- dif_blocks[st_geometry_type(dif_blocks) %in% c("POLYGON", "MULTIPOLYGON"), ]
-dif_blocks <- dif_blocks[!st_is_empty(dif_blocks), ]
+# Load spatial data for blocks with changes
+dif_blocks <- ma_blocks |>
+  select(GEOID10) |>
+  right_join(target_vehs_changed_blocks) |>
+  st_transform("WGS84")
 
 # Create labels for the map
 veh_labels <- paste0(
@@ -491,8 +441,18 @@ leaflet(dif_blocks) |>
 
 ```
 
-```{r, warning=FALSE, message=FALSE, eval = FALSE}
+```{r, warning=FALSE, message=FALSE}
 
-# Optionally export spatial data for use in GIS software
-st_write(dif_blocks, file.path(T1_folder, "dif_blocks.shp"), append = FALSE)
+target_blocks <- dif_blocks |>
+  filter(GEOID10 %in% target_block_ids)
+
+# All blocks with changes
+st_write(dif_blocks, file.path(T1_folder, 
+                               "blocks",
+                               "dif_blocks.shp"), append = FALSE)
+
+# Just the targeted blocks
+st_write(dif_blocks, file.path(T1_folder, 
+                               "blocks",
+                               "target_blocks.shp"), append = FALSE)
 ```
